@@ -1,9 +1,10 @@
-use ash::version::InstanceV1_0;
+use ash::version::{DeviceV1_0, InstanceV1_0};
 use ash::vk;
 
 pub struct Device {
     pub physical_device: vk::PhysicalDevice,
     pub device: ash::Device,
+    pub queue: vk::Queue,
 }
 
 impl Device {
@@ -34,10 +35,12 @@ impl Device {
             )
         }
         .unwrap();
+        let queue = unsafe { device.get_device_queue(0, 0) };
 
         Self {
             physical_device: *physical_device,
             device,
+            queue,
         }
     }
 }

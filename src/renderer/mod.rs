@@ -2,11 +2,13 @@ mod device;
 mod entry;
 mod instance;
 mod surface;
+mod swapchain;
 
 use device::Device;
 use entry::Entry;
 use instance::Instance;
 use surface::Surface;
+use swapchain::Swapchain;
 
 use ash::{
     version::{DeviceV1_0, InstanceV1_0},
@@ -27,10 +29,7 @@ pub struct Renderer {
     pub instance: Instance,
     pub surface: Surface,
     pub device: Device,
-    pub queue: vk::Queue,
-    pub swapchain: (ash::extensions::khr::Swapchain, vk::SwapchainKHR),
-    pub swapchain_images: Vec<vk::Image>,
-    pub swapchain_image_views: Vec<vk::ImageView>,
+    pub swapchain: Swapchain,
     pub render_pass: vk::RenderPass,
     pub pipeline_layout: vk::PipelineLayout,
     pub pipeline: vk::Pipeline,
@@ -47,24 +46,7 @@ impl Renderer {
         let instance = Instance::new(&entry, window);
         let mut surface = Surface::new(window, &entry, &instance);
         let device = Device::new(&instance, &mut surface);
-        let queue = unsafe { device.device.get_device_queue(0, 0) };
-
-        let (swapchain_loader, swapchain) = Self::create_swapchain(
-            &instance.instance,
-            &device.device,
-            &surface.surface,
-            &surface.capabilities.unwrap(),
-            &surface.format.unwrap(),
-        );
-
-        let swapchain_images = unsafe { swapchain_loader.get_swapchain_images(swapchain) }.unwrap();
-
-        let swapchain_image_views = Self::create_swapchain_image_views(
-            &swapchain_images,
-            &device.device,
-            &surface.format.unwrap(),
-        );
-
+        let swapchain = Swapchain::new(&instance, &surface, &device);
         let render_pass = Self::create_renderpass(&device.device, &surface.format.unwrap());
 
         let (vertex_shader_module, fragment_shader_module) =
@@ -103,7 +85,7 @@ impl Renderer {
 
         let framebuffers = Self::create_framebuffers(
             &device.device,
-            &swapchain_image_views,
+            &swapchain.image_views,
             &render_pass,
             &surface.capabilities.unwrap(),
         );
@@ -128,17 +110,14 @@ impl Renderer {
             &command_pool,
         );
 
-        let sync_objects = Self::create_sync_objects(&device.device, swapchain_images.len());
+        let sync_objects = Self::create_sync_objects(&device.device, swapchain.images.len());
 
         Self {
             entry,
             instance,
             surface,
             device,
-            queue,
-            swapchain: (swapchain_loader, swapchain),
-            swapchain_images,
-            swapchain_image_views,
+            swapchain,
             render_pass,
             pipeline_layout,
             pipeline,
@@ -165,8 +144,8 @@ impl Renderer {
         .unwrap();
 
         let (image_index, _) = unsafe {
-            self.swapchain.0.acquire_next_image(
-                self.swapchain.1,
+            self.swapchain.loader.acquire_next_image(
+                self.swapchain.swapchain,
                 std::u64::MAX,
                 *self
                     .sync_objects
@@ -208,7 +187,7 @@ impl Renderer {
 
         unsafe {
             self.device.device.queue_submit(
-                self.queue,
+                self.device.queue,
                 &[vk::SubmitInfo {
                     wait_semaphore_count: 1,
                     p_wait_semaphores: self
@@ -237,8 +216,8 @@ impl Renderer {
         .unwrap();
 
         unsafe {
-            self.swapchain.0.queue_present(
-                self.queue,
+            self.swapchain.loader.queue_present(
+                self.device.queue,
                 &vk::PresentInfoKHR {
                     wait_semaphore_count: 1,
                     p_wait_semaphores: self
@@ -247,7 +226,7 @@ impl Renderer {
                         .get(self.current_frame)
                         .unwrap(),
                     swapchain_count: 1,
-                    p_swapchains: &self.swapchain.1,
+                    p_swapchains: &self.swapchain.swapchain,
                     p_image_indices: &image_index,
                     ..Default::default()
                 },
@@ -255,76 +234,6 @@ impl Renderer {
         }
         .unwrap();
         self.current_frame = (self.current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
-    }
-
-    fn create_swapchain(
-        instance: &ash::Instance,
-        device: &ash::Device,
-        surface: &vk::SurfaceKHR,
-        capabilities: &vk::SurfaceCapabilitiesKHR,
-        surface_format: &vk::SurfaceFormatKHR,
-    ) -> (ash::extensions::khr::Swapchain, vk::SwapchainKHR) {
-        let swapchain_loader = ash::extensions::khr::Swapchain::new(instance, device);
-        let swapchain = unsafe {
-            swapchain_loader.create_swapchain(
-                &vk::SwapchainCreateInfoKHR {
-                    surface: *surface,
-                    min_image_count: capabilities.min_image_count,
-                    image_format: surface_format.format,
-                    image_color_space: surface_format.color_space,
-                    image_extent: capabilities.current_extent,
-                    image_array_layers: 1,
-                    image_usage: vk::ImageUsageFlags::COLOR_ATTACHMENT,
-                    image_sharing_mode: vk::SharingMode::EXCLUSIVE,
-                    pre_transform: capabilities.current_transform,
-                    composite_alpha: capabilities.supported_composite_alpha,
-                    present_mode: vk::PresentModeKHR::MAILBOX,
-                    clipped: vk::TRUE,
-                    ..Default::default()
-                },
-                None,
-            )
-        }
-        .unwrap();
-
-        (swapchain_loader, swapchain)
-    }
-
-    fn create_swapchain_image_views(
-        swapchain_images: &[vk::Image],
-        device: &ash::Device,
-        surface_format: &vk::SurfaceFormatKHR,
-    ) -> Vec<vk::ImageView> {
-        swapchain_images
-            .iter()
-            .map(|image| {
-                unsafe {
-                    device.create_image_view(
-                        &vk::ImageViewCreateInfo {
-                            image: *image,
-                            view_type: vk::ImageViewType::TYPE_2D,
-                            format: surface_format.format,
-                            components: vk::ComponentMapping {
-                                r: vk::ComponentSwizzle::IDENTITY,
-                                g: vk::ComponentSwizzle::IDENTITY,
-                                b: vk::ComponentSwizzle::IDENTITY,
-                                a: vk::ComponentSwizzle::IDENTITY,
-                            },
-                            subresource_range: vk::ImageSubresourceRange {
-                                aspect_mask: vk::ImageAspectFlags::COLOR,
-                                base_mip_level: 0,
-                                level_count: 1,
-                                base_array_layer: 0,
-                                layer_count: 1,
-                            },
-                            ..Default::default()
-                        },
-                        None,
-                    )
-                }
-                .unwrap()
-            })
-            .collect::<Vec<_>>()
     }
 
     fn create_renderpass(
@@ -569,7 +478,7 @@ impl Renderer {
                             clear_value_count: 1,
                             p_clear_values: &vk::ClearValue {
                                 color: vk::ClearColorValue {
-                                    float32: [1.0, 1.0, 1.0, 1.0],
+                                    float32: [0.0, 0.0, 0.0, 1.0],
                                 },
                             },
                             ..Default::default()
@@ -635,7 +544,7 @@ impl Renderer {
 
 impl Drop for Renderer {
     fn drop(&mut self) {
-        unsafe { self.device.device.queue_wait_idle(self.queue) }.unwrap();
+        unsafe { self.device.device.queue_wait_idle(self.device.queue) }.unwrap();
 
         self.sync_objects
             .image_availabe_semaphores
@@ -673,13 +582,16 @@ impl Drop for Renderer {
                 .device
                 .destroy_render_pass(self.render_pass, None)
         };
-        self.swapchain_image_views
+        self.swapchain
+            .image_views
             .iter()
             .for_each(|image_view| unsafe {
                 self.device.device.destroy_image_view(*image_view, None)
             });
         unsafe {
-            self.swapchain.0.destroy_swapchain(self.swapchain.1, None);
+            self.swapchain
+                .loader
+                .destroy_swapchain(self.swapchain.swapchain, None);
             self.device.device.destroy_device(None);
             self.surface
                 .surface_loader
