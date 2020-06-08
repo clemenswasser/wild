@@ -109,6 +109,7 @@ impl Renderer {
             Err(result) => {
                 if result == vk::Result::ERROR_OUT_OF_DATE_KHR {
                     self.recreate_swapchain();
+                    self.render();
                     return;
                 } else {
                     panic!("Failed to acuire next image!");
@@ -205,6 +206,9 @@ impl Renderer {
                 if result == vk::Result::ERROR_OUT_OF_DATE_KHR {
                     self.resized = false;
                     self.recreate_swapchain();
+                    self.current_frame = (self.current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
+                    self.render();
+                    return;
                 } else {
                     panic!("Failed to present!");
                 }
