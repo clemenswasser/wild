@@ -16,7 +16,9 @@ impl Instance {
         unsafe {
             entry.entry.create_instance(
                 &vk::InstanceCreateInfo {
+                    #[cfg(debug_assertions)]
                     enabled_layer_count: 1,
+                    #[cfg(debug_assertions)]
                     pp_enabled_layer_names: [b"VK_LAYER_KHRONOS_validation\0".as_ptr() as _]
                         .as_ptr(),
                     enabled_extension_count: 2,

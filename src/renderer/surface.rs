@@ -31,19 +31,21 @@ impl Surface {
                 .get_physical_device_surface_support(*physical_device, 0, self.surface)
         }
         .unwrap();
-        if !res {
-            res
-        } else {
-            self.capabilities = Some(
-                unsafe {
-                    self.loader
-                        .get_physical_device_surface_capabilities(*physical_device, self.surface)
-                }
-                .unwrap(),
-            );
-            self.format = Some(self.get_surface_format(physical_device));
-            res
+        if res {
+            self.update_format_and_capabilities(physical_device);
         }
+        res
+    }
+
+    pub fn update_format_and_capabilities(&mut self, physical_device: &vk::PhysicalDevice) {
+        self.capabilities = Some(
+            unsafe {
+                self.loader
+                    .get_physical_device_surface_capabilities(*physical_device, self.surface)
+            }
+            .unwrap(),
+        );
+        self.format = Some(self.get_surface_format(physical_device));
     }
 
     fn get_surface_format(&self, physical_device: &vk::PhysicalDevice) -> vk::SurfaceFormatKHR {
