@@ -75,4 +75,11 @@ impl Swapchain {
             image_views,
         }
     }
+
+    pub fn destroy(&self, device: &super::Device) {
+        self.image_views
+            .iter()
+            .for_each(|image_view| unsafe { device.device.destroy_image_view(*image_view, None) });
+        unsafe { self.loader.destroy_swapchain(self.swapchain, None) };
+    }
 }

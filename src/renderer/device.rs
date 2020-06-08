@@ -43,4 +43,8 @@ impl Device {
             queue,
         }
     }
+
+    pub fn destroy(&self) {
+        unsafe { self.device.destroy_device(None) };
+    }
 }

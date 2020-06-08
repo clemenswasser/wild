@@ -1,4 +1,4 @@
-use ash::version::EntryV1_0;
+use ash::version::{EntryV1_0, InstanceV1_0};
 use ash::vk;
 
 pub struct Instance {
@@ -32,5 +32,9 @@ impl Instance {
             )
         }
         .unwrap()
+    }
+
+    pub fn destroy(&self) {
+        unsafe { self.instance.destroy_instance(None) };
     }
 }

@@ -1,7 +1,7 @@
 use ash::vk;
 
 pub struct Surface {
-    pub surface_loader: ash::extensions::khr::Surface,
+    pub loader: ash::extensions::khr::Surface,
     pub surface: vk::SurfaceKHR,
     pub capabilities: Option<vk::SurfaceCapabilitiesKHR>,
     pub format: Option<vk::SurfaceFormatKHR>,
@@ -13,12 +13,12 @@ impl Surface {
         entry: &super::Entry,
         instance: &super::Instance,
     ) -> Self {
-        let surface_loader = ash::extensions::khr::Surface::new(&entry.entry, &instance.instance);
+        let loader = ash::extensions::khr::Surface::new(&entry.entry, &instance.instance);
         let surface =
             unsafe { ash_window::create_surface(&entry.entry, &instance.instance, window, None) }
                 .unwrap();
         Self {
-            surface_loader,
+            loader,
             surface,
             capabilities: None,
             format: None,
@@ -27,11 +27,8 @@ impl Surface {
 
     pub fn is_supported(&mut self, physical_device: &vk::PhysicalDevice) -> bool {
         let res = unsafe {
-            self.surface_loader.get_physical_device_surface_support(
-                *physical_device,
-                0,
-                self.surface,
-            )
+            self.loader
+                .get_physical_device_surface_support(*physical_device, 0, self.surface)
         }
         .unwrap();
         if !res {
@@ -39,7 +36,7 @@ impl Surface {
         } else {
             self.capabilities = Some(
                 unsafe {
-                    self.surface_loader
+                    self.loader
                         .get_physical_device_surface_capabilities(*physical_device, self.surface)
                 }
                 .unwrap(),
@@ -51,7 +48,7 @@ impl Surface {
 
     fn get_surface_format(&self, physical_device: &vk::PhysicalDevice) -> vk::SurfaceFormatKHR {
         let mut surface_formats = unsafe {
-            self.surface_loader
+            self.loader
                 .get_physical_device_surface_formats(*physical_device, self.surface)
         }
         .unwrap();
@@ -76,5 +73,9 @@ impl Surface {
         };
 
         surface_format
+    }
+
+    pub fn destroy(&self) {
+        unsafe { self.loader.destroy_surface(self.surface, None) };
     }
 }
