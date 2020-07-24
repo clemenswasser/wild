@@ -1,5 +1,4 @@
-#![deny(clippy::all)]
-#![deny(warnings)]
+#![warn(clippy::all)]
 
 mod renderer;
 

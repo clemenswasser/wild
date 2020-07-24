@@ -62,7 +62,7 @@ impl Buffer {
         }
     }
 
-    pub fn write<T>(&self, device: &super::Device, data: &Vec<T>) {
+    pub fn write<T>(&self, device: &super::Device, data: &[T]) {
         let ptr = unsafe {
             device
                 .device
