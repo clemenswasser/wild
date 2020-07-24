@@ -15,6 +15,26 @@ impl Device {
             .find(|physical_device| surface.is_supported(physical_device))
             .unwrap();
 
+        #[cfg(debug_assertions)]
+        {
+            let physical_device_properties = unsafe {
+                instance
+                    .instance
+                    .get_physical_device_properties(*physical_device)
+            };
+            println!(
+                "{} (api_version: {}.{}.{})",
+                unsafe {
+                    std::ffi::CStr::from_ptr(physical_device_properties.device_name.as_ptr())
+                }
+                .to_str()
+                .unwrap(),
+                vk::version_major(physical_device_properties.api_version),
+                vk::version_minor(physical_device_properties.api_version),
+                vk::version_patch(physical_device_properties.api_version)
+            );
+        }
+
         let device = unsafe {
             instance.instance.create_device(
                 *physical_device,

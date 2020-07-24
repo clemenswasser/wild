@@ -1,8 +1,11 @@
+mod buffer;
 mod command_buffers;
 mod command_pool;
+mod debug_utils;
 mod device;
 mod entry;
 mod framebuffers;
+mod index_buffer;
 mod instance;
 mod pipeline;
 mod render_pass;
@@ -12,11 +15,15 @@ mod sync_objects;
 mod vertex;
 mod vertex_buffer;
 
+use buffer::Buffer;
 use command_buffers::CommandBuffers;
 use command_pool::CommandPool;
+#[cfg(debug_assertions)]
+use debug_utils::DebugUtils;
 use device::Device;
 use entry::Entry;
 use framebuffers::Framebuffers;
+use index_buffer::IndexBuffer;
 use instance::Instance;
 use pipeline::Pipeline;
 use render_pass::RenderPass;
@@ -30,28 +37,11 @@ use ash::{version::DeviceV1_0, vk};
 
 const MAX_FRAMES_IN_FLIGHT: usize = 2;
 
-#[cfg(debug_assertions)]
-unsafe extern "system" fn debug_utils_messenger_callback(
-    _message_severity: vk::DebugUtilsMessageSeverityFlagsEXT,
-    _message_types: vk::DebugUtilsMessageTypeFlagsEXT,
-    p_callback_data: *const vk::DebugUtilsMessengerCallbackDataEXT,
-    _p_user_data: *mut std::os::raw::c_void,
-) -> vk::Bool32 {
-    let callback_data = *p_callback_data;
-    println!(
-        "{}",
-        std::ffi::CStr::from_ptr(callback_data.p_message)
-            .to_str()
-            .unwrap()
-    );
-    vk::FALSE
-}
-
 pub struct Renderer {
     pub entry: Entry,
     pub instance: Instance,
     #[cfg(debug_assertions)]
-    pub debug_utils: (ash::extensions::ext::DebugUtils, vk::DebugUtilsMessengerEXT),
+    pub debug_utils: DebugUtils,
     pub surface: Surface,
     pub device: Device,
     pub swapchain: Swapchain,
@@ -66,35 +56,22 @@ pub struct Renderer {
     pub time: std::time::SystemTime,
     pub frames: u32,
     vertex_buffer: VertexBuffer,
+    index_buffer: IndexBuffer,
 }
 
 impl Renderer {
     pub fn new(window: &winit::window::Window) -> Self {
         let vertices = [
-            Vertex::new(cgmath::vec2(0.0, -0.5), cgmath::vec3(1.0, 0.0, 0.0)),
-            Vertex::new(cgmath::vec2(0.5, 0.5), cgmath::vec3(0.0, 1.0, 0.0)),
-            Vertex::new(cgmath::vec2(-0.5, 0.5), cgmath::vec3(0.0, 0.0, 1.0)),
+            Vertex::new(cgmath::vec2(-0.5, -0.5), cgmath::vec3(1.0, 0.0, 0.0)),
+            Vertex::new(cgmath::vec2(0.5, -0.5), cgmath::vec3(0.0, 1.0, 0.0)),
+            Vertex::new(cgmath::vec2(0.5, 0.5), cgmath::vec3(0.0, 0.0, 1.0)),
+            Vertex::new(cgmath::vec2(-0.5, 0.5), cgmath::vec3(1.0, 1.0, 1.0)),
         ];
+        let indices = [0, 1, 2, 2, 3, 0];
         let entry = Entry::new();
         let instance = Instance::new(&entry, window);
         #[cfg(debug_assertions)]
-        let debug_utils_loader =
-            ash::extensions::ext::DebugUtils::new(&entry.entry, &instance.instance);
-        #[cfg(debug_assertions)]
-        let debug_utils_messenger = unsafe {
-            debug_utils_loader.create_debug_utils_messenger(
-                &vk::DebugUtilsMessengerCreateInfoEXT {
-                    message_severity: vk::DebugUtilsMessageSeverityFlagsEXT::WARNING
-                        | vk::DebugUtilsMessageSeverityFlagsEXT::ERROR,
-                    message_type: vk::DebugUtilsMessageTypeFlagsEXT::all(),
-                    pfn_user_callback: Some(debug_utils_messenger_callback),
-                    ..Default::default()
-                },
-                None,
-            )
-        }
-        .unwrap();
-
+        let debug_utils = DebugUtils::new(&entry, &instance);
         let mut surface = Surface::new(window, &entry, &instance);
         let device = Device::new(&instance, &mut surface);
         let swapchain = Swapchain::new(&instance, &surface, &device);
@@ -103,6 +80,7 @@ impl Renderer {
         let framebuffers = Framebuffers::new(&surface, &device, &swapchain, &render_pass);
         let command_pool = CommandPool::new(&device);
         let vertex_buffer = VertexBuffer::new(&instance, &device, &command_pool, vertices.into());
+        let index_buffer = IndexBuffer::new(&instance, &device, &command_pool, indices.into());
         let command_buffers = CommandBuffers::new(
             &surface,
             &device,
@@ -111,13 +89,14 @@ impl Renderer {
             &framebuffers,
             &command_pool,
             &vertex_buffer,
+            &index_buffer,
         );
         let sync_objects = SyncObjects::new(&device, &swapchain);
         Self {
             entry,
             instance,
             #[cfg(debug_assertions)]
-            debug_utils: (debug_utils_loader, debug_utils_messenger),
+            debug_utils,
             surface,
             device,
             swapchain,
@@ -132,6 +111,7 @@ impl Renderer {
             time: std::time::SystemTime::now(),
             frames: 0,
             vertex_buffer,
+            index_buffer,
         }
     }
 
@@ -314,6 +294,7 @@ impl Renderer {
             &self.framebuffers,
             &self.command_pool,
             &self.vertex_buffer,
+            &self.index_buffer,
         );
     }
 }
@@ -321,6 +302,8 @@ impl Renderer {
 impl Drop for Renderer {
     fn drop(&mut self) {
         unsafe { self.device.device.queue_wait_idle(self.device.queue) }.unwrap();
+
+        self.index_buffer.destory(&self.device);
         self.vertex_buffer.destory(&self.device);
         self.sync_objects.destroy(&self.device);
         self.command_buffers.free(&self.device, &self.command_pool);
@@ -332,11 +315,7 @@ impl Drop for Renderer {
         self.device.destroy();
         self.surface.destroy();
         #[cfg(debug_assertions)]
-        unsafe {
-            self.debug_utils
-                .0
-                .destroy_debug_utils_messenger(self.debug_utils.1, None)
-        };
+        self.debug_utils.destroy();
         self.instance.destroy();
     }
 }

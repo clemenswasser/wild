@@ -4,9 +4,6 @@ version = "0.1.0"
 authors = ["Clemens Wasser <clemens.wasser@gmail.com>"]
 edition = "2018"
 
-[profile.release]
-debug = true
-
 [dependencies]
 ash = "0.31.0"
 winit = "0.22.2"

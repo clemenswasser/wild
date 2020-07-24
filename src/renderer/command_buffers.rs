@@ -1,3 +1,6 @@
+use super::{
+    CommandPool, Device, Framebuffers, IndexBuffer, Pipeline, RenderPass, Surface, VertexBuffer,
+};
 use ash::version::DeviceV1_0;
 use ash::vk;
 
@@ -7,13 +10,14 @@ pub struct CommandBuffers {
 
 impl CommandBuffers {
     pub fn new(
-        surface: &super::Surface,
-        device: &super::Device,
-        render_pass: &super::RenderPass,
-        pipeline: &super::Pipeline,
-        framebuffers: &super::Framebuffers,
-        command_pool: &super::CommandPool,
-        vertex_buffer: &super::VertexBuffer,
+        surface: &Surface,
+        device: &Device,
+        render_pass: &RenderPass,
+        pipeline: &Pipeline,
+        framebuffers: &Framebuffers,
+        command_pool: &CommandPool,
+        vertex_buffer: &VertexBuffer,
+        index_buffer: &IndexBuffer,
     ) -> Self {
         let command_buffers = unsafe {
             device
@@ -66,13 +70,20 @@ impl CommandBuffers {
                     device.device.cmd_bind_vertex_buffers(
                         *command_buffer,
                         0,
-                        &[vertex_buffer.buffer],
+                        &[vertex_buffer.buffer.buffer],
                         &[0],
                     );
-                    device.device.cmd_draw(
+                    device.device.cmd_bind_index_buffer(
                         *command_buffer,
-                        vertex_buffer.vertices.len() as _,
+                        index_buffer.buffer.buffer,
+                        0,
+                        vk::IndexType::UINT16,
+                    );
+                    device.device.cmd_draw_indexed(
+                        *command_buffer,
+                        index_buffer.indices.len() as _,
                         1,
+                        0,
                         0,
                         0,
                     );
