@@ -74,8 +74,11 @@ impl Pipeline {
                     ]
                     .as_ptr(),
                     p_vertex_input_state: &vk::PipelineVertexInputStateCreateInfo {
-                        vertex_binding_description_count: 0,
-                        vertex_attribute_description_count: 0,
+                        vertex_binding_description_count: 1,
+                        p_vertex_binding_descriptions: &super::Vertex::binding_description(),
+                        vertex_attribute_description_count: 2,
+                        p_vertex_attribute_descriptions: super::Vertex::attribute_descriptions()
+                            .as_ptr(),
                         ..Default::default()
                     },
                     p_input_assembly_state: &vk::PipelineInputAssemblyStateCreateInfo {

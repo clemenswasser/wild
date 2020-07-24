@@ -22,14 +22,14 @@ fn main() {
                 winit::event::WindowEvent::CloseRequested => {
                     *control_flow = winit::event_loop::ControlFlow::Exit;
                 }
-                winit::event::WindowEvent::Resized(_size) => renderer.resize(),
+                winit::event::WindowEvent::Resized(_size) => renderer.render(),
                 _ => {}
             },
             winit::event::Event::RedrawRequested(_) => {
                 renderer.render();
             }
             winit::event::Event::MainEventsCleared => {
-                window.request_redraw();
+                renderer.render();
             }
             _ => {}
         }

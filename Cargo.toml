@@ -4,8 +4,13 @@ version = "0.1.0"
 authors = ["Clemens Wasser <clemens.wasser@gmail.com>"]
 edition = "2018"
 
+[profile.release]
+debug = true
+
 [dependencies]
-ash = "*"
-winit = "*"
-raw-window-handle = "*"
-ash-window = "*"
+ash = "0.31.0"
+winit = "0.22.2"
+raw-window-handle = "0.3.3"
+ash-window = "0.5.0"
+cgmath = "0.17.0"
+memoffset = "0.5.5"

@@ -13,6 +13,7 @@ impl CommandBuffers {
         pipeline: &super::Pipeline,
         framebuffers: &super::Framebuffers,
         command_pool: &super::CommandPool,
+        vertex_buffer: &super::VertexBuffer,
     ) -> Self {
         let command_buffers = unsafe {
             device
@@ -62,7 +63,19 @@ impl CommandBuffers {
                         vk::PipelineBindPoint::GRAPHICS,
                         pipeline.pipeline,
                     );
-                    device.device.cmd_draw(*command_buffer, 3, 1, 0, 0);
+                    device.device.cmd_bind_vertex_buffers(
+                        *command_buffer,
+                        0,
+                        &[vertex_buffer.buffer],
+                        &[0],
+                    );
+                    device.device.cmd_draw(
+                        *command_buffer,
+                        vertex_buffer.vertices.len() as _,
+                        1,
+                        0,
+                        0,
+                    );
                     device.device.cmd_end_render_pass(*command_buffer);
                     device.device.end_command_buffer(*command_buffer).unwrap();
                 };
@@ -71,7 +84,7 @@ impl CommandBuffers {
         Self { command_buffers }
     }
 
-    pub fn destroy(&self, device: &super::Device, command_pool: &super::CommandPool) {
+    pub fn free(&self, device: &super::Device, command_pool: &super::CommandPool) {
         unsafe {
             device
                 .device

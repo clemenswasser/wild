@@ -9,6 +9,8 @@ mod render_pass;
 mod surface;
 mod swapchain;
 mod sync_objects;
+mod vertex;
+mod vertex_buffer;
 
 use command_buffers::CommandBuffers;
 use command_pool::CommandPool;
@@ -21,14 +23,35 @@ use render_pass::RenderPass;
 use surface::Surface;
 use swapchain::Swapchain;
 use sync_objects::SyncObjects;
+use vertex::Vertex;
+use vertex_buffer::VertexBuffer;
 
 use ash::{version::DeviceV1_0, vk};
 
 const MAX_FRAMES_IN_FLIGHT: usize = 2;
 
+#[cfg(debug_assertions)]
+unsafe extern "system" fn debug_utils_messenger_callback(
+    _message_severity: vk::DebugUtilsMessageSeverityFlagsEXT,
+    _message_types: vk::DebugUtilsMessageTypeFlagsEXT,
+    p_callback_data: *const vk::DebugUtilsMessengerCallbackDataEXT,
+    _p_user_data: *mut std::os::raw::c_void,
+) -> vk::Bool32 {
+    let callback_data = *p_callback_data;
+    println!(
+        "{}",
+        std::ffi::CStr::from_ptr(callback_data.p_message)
+            .to_str()
+            .unwrap()
+    );
+    vk::FALSE
+}
+
 pub struct Renderer {
     pub entry: Entry,
     pub instance: Instance,
+    #[cfg(debug_assertions)]
+    pub debug_utils: (ash::extensions::ext::DebugUtils, vk::DebugUtilsMessengerEXT),
     pub surface: Surface,
     pub device: Device,
     pub swapchain: Swapchain,
@@ -40,12 +63,38 @@ pub struct Renderer {
     pub sync_objects: SyncObjects,
     pub current_frame: usize,
     pub resized: bool,
+    pub time: std::time::SystemTime,
+    pub frames: u32,
+    vertex_buffer: VertexBuffer,
 }
 
 impl Renderer {
     pub fn new(window: &winit::window::Window) -> Self {
+        let vertices = [
+            Vertex::new(cgmath::vec2(0.0, -0.5), cgmath::vec3(1.0, 0.0, 0.0)),
+            Vertex::new(cgmath::vec2(0.5, 0.5), cgmath::vec3(0.0, 1.0, 0.0)),
+            Vertex::new(cgmath::vec2(-0.5, 0.5), cgmath::vec3(0.0, 0.0, 1.0)),
+        ];
         let entry = Entry::new();
         let instance = Instance::new(&entry, window);
+        #[cfg(debug_assertions)]
+        let debug_utils_loader =
+            ash::extensions::ext::DebugUtils::new(&entry.entry, &instance.instance);
+        #[cfg(debug_assertions)]
+        let debug_utils_messenger = unsafe {
+            debug_utils_loader.create_debug_utils_messenger(
+                &vk::DebugUtilsMessengerCreateInfoEXT {
+                    message_severity: vk::DebugUtilsMessageSeverityFlagsEXT::WARNING
+                        | vk::DebugUtilsMessageSeverityFlagsEXT::ERROR,
+                    message_type: vk::DebugUtilsMessageTypeFlagsEXT::all(),
+                    pfn_user_callback: Some(debug_utils_messenger_callback),
+                    ..Default::default()
+                },
+                None,
+            )
+        }
+        .unwrap();
+
         let mut surface = Surface::new(window, &entry, &instance);
         let device = Device::new(&instance, &mut surface);
         let swapchain = Swapchain::new(&instance, &surface, &device);
@@ -53,6 +102,7 @@ impl Renderer {
         let pipeline = Pipeline::new(&surface, &device, &render_pass);
         let framebuffers = Framebuffers::new(&surface, &device, &swapchain, &render_pass);
         let command_pool = CommandPool::new(&device);
+        let vertex_buffer = VertexBuffer::new(&instance, &device, &command_pool, vertices.into());
         let command_buffers = CommandBuffers::new(
             &surface,
             &device,
@@ -60,11 +110,14 @@ impl Renderer {
             &pipeline,
             &framebuffers,
             &command_pool,
+            &vertex_buffer,
         );
         let sync_objects = SyncObjects::new(&device, &swapchain);
         Self {
             entry,
             instance,
+            #[cfg(debug_assertions)]
+            debug_utils: (debug_utils_loader, debug_utils_messenger),
             surface,
             device,
             swapchain,
@@ -76,10 +129,20 @@ impl Renderer {
             sync_objects,
             current_frame: 0,
             resized: false,
+            time: std::time::SystemTime::now(),
+            frames: 0,
+            vertex_buffer,
         }
     }
 
     pub fn render(&mut self) {
+        self.frames += 1;
+        if self.time.elapsed().unwrap().as_millis() > 1000 {
+            println!("{} FPS", self.frames);
+            self.time = std::time::SystemTime::now();
+            self.frames = 0;
+        }
+
         unsafe {
             self.device.device.wait_for_fences(
                 &[*self
@@ -223,17 +286,11 @@ impl Renderer {
         self.current_frame = (self.current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
-    pub fn resize(&mut self) {
-        self.resized = true;
-    }
-
     fn recreate_swapchain(&mut self) {
         unsafe { self.device.device.device_wait_idle() }.unwrap();
 
-        //CLEANUP
         self.framebuffers.destroy(&self.device);
-        self.command_buffers
-            .destroy(&self.device, &self.command_pool);
+        self.command_buffers.free(&self.device, &self.command_pool);
         self.pipeline.destroy(&self.device);
         self.render_pass.destroy(&self.device);
         self.swapchain.destroy(&self.device);
@@ -256,6 +313,7 @@ impl Renderer {
             &self.pipeline,
             &self.framebuffers,
             &self.command_pool,
+            &self.vertex_buffer,
         );
     }
 }
@@ -263,9 +321,9 @@ impl Renderer {
 impl Drop for Renderer {
     fn drop(&mut self) {
         unsafe { self.device.device.queue_wait_idle(self.device.queue) }.unwrap();
+        self.vertex_buffer.destory(&self.device);
         self.sync_objects.destroy(&self.device);
-        self.command_buffers
-            .destroy(&self.device, &self.command_pool);
+        self.command_buffers.free(&self.device, &self.command_pool);
         self.command_pool.destroy(&self.device);
         self.framebuffers.destroy(&self.device);
         self.pipeline.destroy(&self.device);
@@ -273,6 +331,12 @@ impl Drop for Renderer {
         self.swapchain.destroy(&self.device);
         self.device.destroy();
         self.surface.destroy();
+        #[cfg(debug_assertions)]
+        unsafe {
+            self.debug_utils
+                .0
+                .destroy_debug_utils_messenger(self.debug_utils.1, None)
+        };
         self.instance.destroy();
     }
 }
