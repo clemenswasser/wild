@@ -1,7 +1,7 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
-pub struct SyncObjects {
+pub(crate) struct SyncObjects {
     pub image_availabe_semaphores: [vk::Semaphore; super::MAX_FRAMES_IN_FLIGHT],
     pub render_finished_semaphores: [vk::Semaphore; super::MAX_FRAMES_IN_FLIGHT],
     pub in_flight_fences: [vk::Fence; super::MAX_FRAMES_IN_FLIGHT],

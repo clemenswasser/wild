@@ -1,7 +1,6 @@
 use ash::vk;
 
-#[derive(Debug)]
-pub struct Vertex {
+pub(crate) struct Vertex {
     position: cgmath::Vector2<f32>,
     color: cgmath::Vector3<f32>,
 }

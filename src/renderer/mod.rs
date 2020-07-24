@@ -38,25 +38,25 @@ use ash::{version::DeviceV1_0, vk};
 const MAX_FRAMES_IN_FLIGHT: usize = 2;
 
 pub struct Renderer {
-    pub entry: Entry,
-    pub instance: Instance,
+    _entry: Entry,
+    instance: Instance,
     #[cfg(debug_assertions)]
-    pub debug_utils: DebugUtils,
-    pub surface: Surface,
-    pub device: Device,
-    pub swapchain: Swapchain,
-    pub render_pass: RenderPass,
-    pub pipeline: Pipeline,
-    pub framebuffers: Framebuffers,
-    pub command_pool: CommandPool,
-    pub command_buffers: CommandBuffers,
-    pub sync_objects: SyncObjects,
-    pub current_frame: usize,
-    pub resized: bool,
-    pub time: std::time::SystemTime,
-    pub frames: u32,
+    debug_utils: DebugUtils,
+    surface: Surface,
+    device: Device,
+    swapchain: Swapchain,
+    render_pass: RenderPass,
+    pipeline: Pipeline,
+    framebuffers: Framebuffers,
+    command_pool: CommandPool,
     vertex_buffer: VertexBuffer,
     index_buffer: IndexBuffer,
+    command_buffers: CommandBuffers,
+    sync_objects: SyncObjects,
+    current_frame: usize,
+    resized: bool,
+    time: std::time::SystemTime,
+    frames: u32,
 }
 
 impl Renderer {
@@ -93,7 +93,7 @@ impl Renderer {
         );
         let sync_objects = SyncObjects::new(&device, &swapchain);
         Self {
-            entry,
+            _entry: entry,
             instance,
             #[cfg(debug_assertions)]
             debug_utils,
@@ -104,14 +104,14 @@ impl Renderer {
             pipeline,
             framebuffers,
             command_pool,
+            vertex_buffer,
+            index_buffer,
             command_buffers,
             sync_objects,
             current_frame: 0,
             resized: false,
             time: std::time::SystemTime::now(),
             frames: 0,
-            vertex_buffer,
-            index_buffer,
         }
     }
 

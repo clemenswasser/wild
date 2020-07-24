@@ -1,7 +1,7 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
-pub struct Pipeline {
+pub(crate) struct Pipeline {
     pub layout: vk::PipelineLayout,
     pub pipeline: vk::Pipeline,
 }

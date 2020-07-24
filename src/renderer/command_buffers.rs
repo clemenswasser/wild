@@ -4,7 +4,7 @@ use super::{
 use ash::version::DeviceV1_0;
 use ash::vk;
 
-pub struct CommandBuffers {
+pub(crate) struct CommandBuffers {
     pub command_buffers: Vec<vk::CommandBuffer>,
 }
 

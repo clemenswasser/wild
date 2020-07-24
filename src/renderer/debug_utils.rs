@@ -19,7 +19,7 @@ unsafe extern "system" fn debug_utils_messenger_callback(
     vk::FALSE
 }
 
-pub struct DebugUtils {
+pub(crate) struct DebugUtils {
     loader: ash::extensions::ext::DebugUtils,
     messenger: vk::DebugUtilsMessengerEXT,
 }

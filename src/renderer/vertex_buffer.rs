@@ -1,7 +1,7 @@
 use super::{Buffer, CommandPool, Device, Instance, Vertex};
 use ash::vk;
 
-pub struct VertexBuffer {
+pub(crate) struct VertexBuffer {
     pub vertices: Vec<Vertex>,
     pub buffer: Buffer,
 }
