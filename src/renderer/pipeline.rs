@@ -11,6 +11,7 @@ impl Pipeline {
         surface: &super::Surface,
         device: &super::Device,
         render_pass: &super::RenderPass,
+        descriptor_set_layout: &vk::DescriptorSetLayout,
     ) -> Self {
         let vertex_shader = include_bytes!("../../shaders/vert.spv");
         let fragment_shader = include_bytes!("../../shaders/frag.spv");
@@ -44,8 +45,8 @@ impl Pipeline {
         let layout = unsafe {
             device.device.create_pipeline_layout(
                 &vk::PipelineLayoutCreateInfo {
-                    set_layout_count: 0,
-                    push_constant_range_count: 0,
+                    set_layout_count: 1,
+                    p_set_layouts: descriptor_set_layout,
                     ..Default::default()
                 },
                 None,
@@ -108,8 +109,8 @@ impl Pipeline {
                         rasterizer_discard_enable: vk::FALSE,
                         polygon_mode: vk::PolygonMode::FILL,
                         line_width: 1.0,
-                        cull_mode: vk::CullModeFlags::BACK,
-                        front_face: vk::FrontFace::CLOCKWISE,
+                        cull_mode: vk::CullModeFlags::FRONT,
+                        front_face: vk::FrontFace::COUNTER_CLOCKWISE,
                         depth_bias_enable: vk::FALSE,
                         ..Default::default()
                     },
@@ -123,10 +124,7 @@ impl Pipeline {
                         logic_op: vk::LogicOp::COPY,
                         attachment_count: 1,
                         p_attachments: &vk::PipelineColorBlendAttachmentState {
-                            color_write_mask: vk::ColorComponentFlags::R
-                                | vk::ColorComponentFlags::G
-                                | vk::ColorComponentFlags::B
-                                | vk::ColorComponentFlags::A,
+                            color_write_mask: vk::ColorComponentFlags::all(),
                             blend_enable: vk::FALSE,
                             ..Default::default()
                         },

@@ -21,7 +21,7 @@ impl VertexBuffer {
             vk::BufferUsageFlags::TRANSFER_SRC,
             vk::MemoryPropertyFlags::HOST_VISIBLE | vk::MemoryPropertyFlags::HOST_COHERENT,
         );
-        staging_buffer.write(device, &vertices);
+        staging_buffer.write_arr(device, &vertices);
         let buffer = Buffer::new(
             &instance,
             &device,

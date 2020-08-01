@@ -4,14 +4,16 @@ use super::{Entry, Instance};
 use ash::vk;
 
 unsafe extern "system" fn debug_utils_messenger_callback(
-    _message_severity: vk::DebugUtilsMessageSeverityFlagsEXT,
-    _message_types: vk::DebugUtilsMessageTypeFlagsEXT,
+    message_severity: vk::DebugUtilsMessageSeverityFlagsEXT,
+    message_types: vk::DebugUtilsMessageTypeFlagsEXT,
     p_callback_data: *const vk::DebugUtilsMessengerCallbackDataEXT,
     _p_user_data: *mut std::os::raw::c_void,
 ) -> vk::Bool32 {
     let callback_data = *p_callback_data;
     println!(
-        "{}",
+        "[{:?}][{:?}] {}",
+        message_severity,
+        message_types,
         std::ffi::CStr::from_ptr(callback_data.p_message)
             .to_str()
             .unwrap()

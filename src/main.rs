@@ -21,15 +21,25 @@ fn main() {
                 winit::event::WindowEvent::CloseRequested => {
                     *control_flow = winit::event_loop::ControlFlow::Exit;
                 }
-                winit::event::WindowEvent::Resized(_size) => renderer.render(),
+                winit::event::WindowEvent::Resized(_size)
+                    if !(window.inner_size().width == 0 || window.inner_size().width == 0) =>
+                {
+                    renderer.render()
+                }
                 _ => {}
             },
-            winit::event::Event::RedrawRequested(_) => {
-                renderer.render();
+            winit::event::Event::RedrawRequested(_)
+                if !(window.inner_size().width == 0 || window.inner_size().width == 0) =>
+            {
+                renderer.render()
             }
-            winit::event::Event::MainEventsCleared => {
-                renderer.render();
+
+            winit::event::Event::MainEventsCleared
+                if !(window.inner_size().width == 0 || window.inner_size().width == 0) =>
+            {
+                renderer.render()
             }
+
             _ => {}
         }
     })

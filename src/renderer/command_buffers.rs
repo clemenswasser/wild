@@ -18,6 +18,7 @@ impl CommandBuffers {
         command_pool: &CommandPool,
         vertex_buffer: &VertexBuffer,
         index_buffer: &IndexBuffer,
+        descriptor_sets: &[vk::DescriptorSet],
     ) -> Self {
         let command_buffers = unsafe {
             device
@@ -78,6 +79,14 @@ impl CommandBuffers {
                         index_buffer.buffer.buffer,
                         0,
                         vk::IndexType::UINT16,
+                    );
+                    device.device.cmd_bind_descriptor_sets(
+                        *command_buffer,
+                        vk::PipelineBindPoint::GRAPHICS,
+                        pipeline.layout,
+                        0,
+                        &[*descriptor_sets.get(i).unwrap()],
+                        &[],
                     );
                     device.device.cmd_draw_indexed(
                         *command_buffer,

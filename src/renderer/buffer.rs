@@ -41,9 +41,9 @@ impl Buffer {
                         .iter()
                         .enumerate()
                         .find(|(i, memeory_type)| {
-                            ((memory_requirements.memory_type_bits & (1 << i)) != 0)
-                                && (memeory_type.property_flags & memory_properties
-                                    == memory_properties)
+                            (memory_requirements.memory_type_bits & (1 << i)) != 0
+                                && (memeory_type.property_flags & memory_properties)
+                                    == memory_properties
                         })
                         .unwrap()
                         .0 as _,
@@ -62,7 +62,18 @@ impl Buffer {
         }
     }
 
-    pub fn write<T>(&self, device: &super::Device, data: &[T]) {
+    pub fn write<T>(&self, device: &super::Device, data: T) {
+        let ptr = unsafe {
+            device
+                .device
+                .map_memory(self.memory, 0, self.size as _, vk::MemoryMapFlags::empty())
+        }
+        .unwrap();
+        unsafe { (&data as *const T).copy_to(ptr as _, 1) };
+        unsafe { device.device.unmap_memory(self.memory) };
+    }
+
+    pub fn write_arr<T>(&self, device: &super::Device, data: &[T]) {
         let ptr = unsafe {
             device
                 .device

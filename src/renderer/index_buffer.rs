@@ -21,7 +21,7 @@ impl IndexBuffer {
             vk::BufferUsageFlags::TRANSFER_SRC,
             vk::MemoryPropertyFlags::HOST_VISIBLE | vk::MemoryPropertyFlags::HOST_COHERENT,
         );
-        staging_buffer.write(device, &indices);
+        staging_buffer.write_arr(device, &indices);
         let buffer = Buffer::new(
             instance,
             device,
