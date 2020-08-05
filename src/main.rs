@@ -33,14 +33,12 @@ fn main() {
             {
                 renderer.render()
             }
-
             winit::event::Event::MainEventsCleared
                 if !(window.inner_size().width == 0 || window.inner_size().width == 0) =>
             {
                 renderer.render()
             }
-
             _ => {}
         }
-    })
+    });
 }

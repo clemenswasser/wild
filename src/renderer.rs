@@ -144,13 +144,13 @@ impl Renderer {
     }
 
     pub fn render(&mut self) {
-        self.frames += 1;
         if self.time.elapsed().unwrap().as_millis() > 1000 {
             print!("\r{} FPS", self.frames);
             let _ = std::io::stdout().flush();
             self.time = std::time::SystemTime::now();
             self.frames = 0;
         }
+        self.frames += 1;
 
         unsafe {
             self.device.device.wait_for_fences(
