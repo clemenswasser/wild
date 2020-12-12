@@ -2,6 +2,10 @@
 
 mod renderer;
 
+fn is_window_drawable(window: &winit::window::Window) -> bool {
+    window.inner_size().width != 0 && window.inner_size().width != 0
+}
+
 fn main() {
     let event_loop = winit::event_loop::EventLoop::new();
     let window = winit::window::WindowBuilder::new()
@@ -21,21 +25,15 @@ fn main() {
                 winit::event::WindowEvent::CloseRequested => {
                     *control_flow = winit::event_loop::ControlFlow::Exit;
                 }
-                winit::event::WindowEvent::Resized(_size)
-                    if !(window.inner_size().width == 0 || window.inner_size().width == 0) =>
-                {
+                winit::event::WindowEvent::Resized(_size) if is_window_drawable(&window) => {
                     renderer.render()
                 }
                 _ => {}
             },
-            winit::event::Event::RedrawRequested(_)
-                if !(window.inner_size().width == 0 || window.inner_size().width == 0) =>
-            {
+            winit::event::Event::RedrawRequested(_) if is_window_drawable(&window) => {
                 renderer.render()
             }
-            winit::event::Event::MainEventsCleared
-                if !(window.inner_size().width == 0 || window.inner_size().width == 0) =>
-            {
+            winit::event::Event::MainEventsCleared if is_window_drawable(&window) => {
                 renderer.render()
             }
             _ => {}
