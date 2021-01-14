@@ -306,7 +306,7 @@ impl Renderer {
             * 90f32;
         let uniform_object = UniformObject {
             model: cgmath::Matrix4::from_angle_z(cgmath::Deg(self.rotation)),
-            view: cgmath::Matrix4::look_at(
+            view: cgmath::Matrix4::look_at_rh(
                 cgmath::Point3::new(2f32, 2f32, 2f32),
                 cgmath::Point3::new(0f32, 0f32, 0f32),
                 cgmath::Vector3::new(0f32, 0f32, 1.0),
