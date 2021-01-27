@@ -184,7 +184,7 @@ impl Renderer {
                     self.render();
                     return;
                 } else {
-                    panic!("Failed to acuire next image!");
+                    panic!("Failed to acquire next image!");
                 }
             }
         };
