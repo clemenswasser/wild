@@ -45,11 +45,13 @@ impl DebugUtils {
         .unwrap();
         Self { loader, messenger }
     }
+}
 
-    pub fn destroy(&self) {
+impl Drop for DebugUtils {
+    fn drop(&mut self) {
         unsafe {
             self.loader
                 .destroy_debug_utils_messenger(self.messenger, None)
-        };
+        }; 
     }
 }

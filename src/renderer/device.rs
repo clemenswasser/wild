@@ -63,8 +63,10 @@ impl Device {
             queue,
         }
     }
+}
 
-    pub fn destroy(&self) {
+impl Drop for Device {
+    fn drop(&mut self) {
         unsafe { self.device.destroy_device(None) };
     }
 }

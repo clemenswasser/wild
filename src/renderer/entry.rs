@@ -5,7 +5,7 @@ pub(crate) struct Entry {
 impl Entry {
     pub fn new() -> Self {
         Self {
-            entry: ash::Entry::new().unwrap(),
+            entry: unsafe { ash::Entry::new() }.unwrap(),
         }
     }
 }

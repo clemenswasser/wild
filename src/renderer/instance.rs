@@ -40,8 +40,10 @@ impl Instance {
         }
         .unwrap()
     }
+}
 
-    pub fn destroy(&self) {
+impl Drop for Instance {
+    fn drop(&mut self) {
         unsafe { self.instance.destroy_instance(None) };
     }
 }

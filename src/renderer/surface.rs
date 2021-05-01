@@ -76,8 +76,10 @@ impl Surface {
 
         surface_format
     }
+}
 
-    pub fn destroy(&self) {
+impl Drop for Surface {
+    fn drop(&mut self) {
         unsafe { self.loader.destroy_surface(self.surface, None) };
     }
 }

@@ -28,7 +28,16 @@ impl Swapchain {
                     image_sharing_mode: vk::SharingMode::EXCLUSIVE,
                     pre_transform: surface.capabilities.unwrap().current_transform,
                     composite_alpha: surface.capabilities.unwrap().supported_composite_alpha,
-                    present_mode: vk::PresentModeKHR::MAILBOX,
+                    present_mode: surface
+                        .loader
+                        .get_physical_device_surface_present_modes(
+                            device.physical_device,
+                            surface.surface,
+                        )
+                        .unwrap()
+                        .into_iter()
+                        .find(|present_mode| *present_mode == vk::PresentModeKHR::MAILBOX)
+                        .unwrap_or(vk::PresentModeKHR::FIFO),
                     clipped: vk::TRUE,
                     ..Default::default()
                 },

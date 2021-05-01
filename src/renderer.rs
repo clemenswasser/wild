@@ -139,7 +139,7 @@ impl Renderer {
             time: std::time::SystemTime::now(),
             frames: 0,
             timer: std::time::SystemTime::now(),
-            rotation: 0f32,
+            rotation: 0_f32,
         }
     }
 
@@ -203,12 +203,20 @@ impl Renderer {
                     .wait_for_fences(&[*images_in_flight_fence], true, std::u64::MAX)
             }
             .unwrap();
-            *images_in_flight_fence = *self
-                .sync_objects
-                .in_flight_fences
-                .get(self.current_frame)
-                .unwrap();
         }
+
+        let _ = std::mem::replace(
+            self.sync_objects
+                .images_in_flight
+                .get_mut(image_index as usize)
+                .unwrap(),
+            Some(
+                *self.sync_objects
+                    .in_flight_fences
+                    .get(self.current_frame)
+                    .unwrap(),
+            ),
+        );
 
         unsafe {
             self.device.device.reset_fences(&[*self
@@ -302,21 +310,21 @@ impl Renderer {
         self.rotation += current_time
             .duration_since(self.timer)
             .unwrap()
-            .as_secs_f32() as f32
-            * 90f32;
+            .as_secs_f32()
+            * 90_f32;
         let uniform_object = UniformObject {
             model: cgmath::Matrix4::from_angle_z(cgmath::Deg(self.rotation)),
             view: cgmath::Matrix4::look_at_rh(
-                cgmath::Point3::new(2f32, 2f32, 2f32),
-                cgmath::Point3::new(0f32, 0f32, 0f32),
-                cgmath::Vector3::new(0f32, 0f32, 1.0),
+                cgmath::Point3::new(2_f32, 2_f32, 2_f32),
+                cgmath::Point3::new(0_f32, 0_f32, 0_f32),
+                cgmath::Vector3::new(0_f32, 0_f32, 1_f32),
             ),
             projection: cgmath::perspective(
-                cgmath::Deg(45f32),
+                cgmath::Deg(45_f32),
                 self.surface.capabilities.unwrap().current_extent.width as f32
                     / self.surface.capabilities.unwrap().current_extent.height as f32,
-                0.1f32,
-                10f32,
+                0.1_f32,
+                10_f32,
             ),
         };
 
@@ -512,10 +520,5 @@ impl Drop for Renderer {
         self.uniform_buffers
             .iter()
             .for_each(|uniform_buffer| uniform_buffer.destory(&self.device));
-        self.device.destroy();
-        self.surface.destroy();
-        #[cfg(debug_assertions)]
-        self.debug_utils.destroy();
-        self.instance.destroy();
     }
 }

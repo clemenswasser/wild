@@ -9,7 +9,6 @@ fn is_window_drawable(window: &winit::window::Window) -> bool {
 fn main() {
     let event_loop = winit::event_loop::EventLoop::new();
     let window = winit::window::WindowBuilder::new()
-        .with_min_inner_size(winit::dpi::LogicalSize::new(100, 100))
         .build(&event_loop)
         .unwrap();
 

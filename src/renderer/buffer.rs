@@ -69,7 +69,7 @@ impl Buffer {
                 .map_memory(self.memory, 0, self.size as _, vk::MemoryMapFlags::empty())
         }
         .unwrap();
-        unsafe { (&data as *const T).copy_to(ptr as _, 1) };
+        unsafe { (&data as *const T).copy_to(ptr.cast(), 1) };
         unsafe { device.device.unmap_memory(self.memory) };
     }
 
@@ -80,7 +80,7 @@ impl Buffer {
                 .map_memory(self.memory, 0, self.size as _, vk::MemoryMapFlags::empty())
         }
         .unwrap();
-        unsafe { data.as_ptr().copy_to(ptr as _, data.len()) };
+        unsafe { data.as_ptr().copy_to(ptr.cast(), data.len()) };
         unsafe { device.device.unmap_memory(self.memory) };
     }
 
