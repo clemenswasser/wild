@@ -1,7 +1,7 @@
 use ash::version::{EntryV1_0, InstanceV1_0};
 use ash::vk;
 
-pub(crate) struct Instance {
+pub struct Instance {
     pub instance: ash::Instance,
 }
 
@@ -29,7 +29,7 @@ impl Instance {
                     #[cfg(debug_assertions)]
                     enabled_layer_count: 1,
                     #[cfg(debug_assertions)]
-                    pp_enabled_layer_names: [b"VK_LAYER_KHRONOS_validation\0".as_ptr() as _]
+                    pp_enabled_layer_names: [b"VK_LAYER_KHRONOS_validation\0".as_ptr().cast()]
                         .as_ptr(),
                     enabled_extension_count: extensions.len() as _,
                     pp_enabled_extension_names: extensions.as_ptr(),

@@ -1,7 +1,7 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
-pub(crate) struct Framebuffers {
+pub struct Framebuffers {
     pub framebuffers: Vec<vk::Framebuffer>,
 }
 

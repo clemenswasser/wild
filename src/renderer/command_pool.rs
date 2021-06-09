@@ -1,7 +1,7 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
-pub(crate) struct CommandPool {
+pub struct CommandPool {
     pub command_pool: vk::CommandPool,
 }
 

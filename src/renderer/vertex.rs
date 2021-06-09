@@ -1,7 +1,7 @@
 use ash::vk;
 
 #[repr(C)]
-pub(crate) struct Vertex {
+pub struct Vertex {
     position: cgmath::Vector2<f32>,
     color: cgmath::Vector3<f32>,
 }
@@ -14,7 +14,7 @@ impl Vertex {
     pub fn binding_description() -> vk::VertexInputBindingDescription {
         vk::VertexInputBindingDescription {
             binding: 0,
-            stride: std::mem::size_of::<Vertex>() as _,
+            stride: std::mem::size_of::<Self>() as _,
             input_rate: vk::VertexInputRate::VERTEX,
         }
     }

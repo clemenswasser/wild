@@ -1,7 +1,7 @@
 use super::{Buffer, CommandPool, Device, Instance};
 use ash::vk;
 
-pub(crate) struct IndexBuffer {
+pub struct IndexBuffer {
     pub indices: Vec<u16>,
     pub buffer: Buffer,
 }

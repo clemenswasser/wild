@@ -1,6 +1,6 @@
 use ash::vk;
 
-pub(crate) struct Surface {
+pub struct Surface {
     pub loader: ash::extensions::khr::Surface,
     pub surface: vk::SurfaceKHR,
     pub capabilities: Option<vk::SurfaceCapabilitiesKHR>,

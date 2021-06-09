@@ -2,7 +2,7 @@ use super::{CommandPool, Device, Instance};
 use ash::version::{DeviceV1_0, InstanceV1_0};
 use ash::vk;
 
-pub(crate) struct Buffer {
+pub struct Buffer {
     pub size: usize,
     pub buffer: vk::Buffer,
     pub memory: vk::DeviceMemory,
@@ -84,7 +84,7 @@ impl Buffer {
         unsafe { device.device.unmap_memory(self.memory) };
     }
 
-    pub fn copy_to(&self, device: &super::Device, command_pool: &CommandPool, dst_buffer: &Buffer) {
+    pub fn copy_to(&self, device: &super::Device, command_pool: &CommandPool, dst_buffer: &Self) {
         let command_buffer = unsafe {
             device
                 .device

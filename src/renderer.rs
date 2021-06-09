@@ -420,8 +420,8 @@ impl Renderer {
         (0..swapchain.images.len())
             .map(|_| {
                 Buffer::new(
-                    &instance,
-                    &device,
+                    instance,
+                    device,
                     UNIFORM_OBJECT_SIZE,
                     vk::BufferUsageFlags::UNIFORM_BUFFER,
                     vk::MemoryPropertyFlags::HOST_VISIBLE | vk::MemoryPropertyFlags::HOST_COHERENT,

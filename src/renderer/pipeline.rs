@@ -1,7 +1,7 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
-pub(crate) struct Pipeline {
+pub struct Pipeline {
     pub layout: vk::PipelineLayout,
     pub pipeline: vk::Pipeline,
 }
@@ -21,7 +21,7 @@ impl Pipeline {
                 #[allow(clippy::cast_ptr_alignment)]
                 &vk::ShaderModuleCreateInfo {
                     code_size: vertex_shader.len(),
-                    p_code: vertex_shader.as_ptr() as _,
+                    p_code: vertex_shader.as_ptr().cast(),
                     ..Default::default()
                 },
                 None,
@@ -34,7 +34,7 @@ impl Pipeline {
                 #[allow(clippy::cast_ptr_alignment)]
                 &vk::ShaderModuleCreateInfo {
                     code_size: fragment_shader.len(),
-                    p_code: fragment_shader.as_ptr() as _,
+                    p_code: fragment_shader.as_ptr().cast(),
                     ..Default::default()
                 },
                 None,
@@ -63,13 +63,13 @@ impl Pipeline {
                         vk::PipelineShaderStageCreateInfo {
                             stage: vk::ShaderStageFlags::VERTEX,
                             module: vertex_shader_module,
-                            p_name: b"main\0".as_ptr() as _,
+                            p_name: b"main\0".as_ptr().cast(),
                             ..Default::default()
                         },
                         vk::PipelineShaderStageCreateInfo {
                             stage: vk::ShaderStageFlags::FRAGMENT,
                             module: fragment_shader_module,
-                            p_name: b"main\0".as_ptr() as _,
+                            p_name: b"main\0".as_ptr().cast(),
                             ..Default::default()
                         },
                     ]

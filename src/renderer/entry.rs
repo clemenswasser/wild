@@ -1,4 +1,4 @@
-pub(crate) struct Entry {
+pub struct Entry {
     pub entry: ash::Entry,
 }
 

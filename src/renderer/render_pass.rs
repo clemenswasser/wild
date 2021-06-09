@@ -1,7 +1,7 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
-pub(crate) struct RenderPass {
+pub struct RenderPass {
     pub render_pass: vk::RenderPass,
 }
 
