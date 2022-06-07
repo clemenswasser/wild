@@ -37,7 +37,7 @@ use vertex_buffer::VertexBuffer;
 
 use std::io::Write;
 
-use ash::{version::DeviceV1_0, vk};
+use ash::vk;
 
 const UNIFORM_OBJECT_SIZE: usize = std::mem::size_of::<UniformObject>();
 const MAX_FRAMES_IN_FLIGHT: usize = 2;
@@ -211,7 +211,8 @@ impl Renderer {
                 .get_mut(image_index as usize)
                 .unwrap(),
             Some(
-                *self.sync_objects
+                *self
+                    .sync_objects
                     .in_flight_fences
                     .get(self.current_frame)
                     .unwrap(),

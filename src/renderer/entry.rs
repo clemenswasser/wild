@@ -5,7 +5,7 @@ pub struct Entry {
 impl Entry {
     pub fn new() -> Self {
         Self {
-            entry: unsafe { ash::Entry::new() }.unwrap(),
+            entry: unsafe { ash::Entry::load() }.unwrap(),
         }
     }
 }

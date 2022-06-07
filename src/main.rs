@@ -3,7 +3,7 @@
 mod renderer;
 
 fn is_window_drawable(window: &winit::window::Window) -> bool {
-    window.inner_size().width != 0 && window.inner_size().width != 0
+    window.inner_size().width != 0 && window.inner_size().height != 0
 }
 
 fn main() {

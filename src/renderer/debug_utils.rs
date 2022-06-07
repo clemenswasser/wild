@@ -35,7 +35,9 @@ impl DebugUtils {
                 &vk::DebugUtilsMessengerCreateInfoEXT {
                     message_severity: vk::DebugUtilsMessageSeverityFlagsEXT::WARNING
                         | vk::DebugUtilsMessageSeverityFlagsEXT::ERROR,
-                    message_type: vk::DebugUtilsMessageTypeFlagsEXT::all(),
+                    message_type: vk::DebugUtilsMessageTypeFlagsEXT::GENERAL
+                        | vk::DebugUtilsMessageTypeFlagsEXT::PERFORMANCE
+                        | vk::DebugUtilsMessageTypeFlagsEXT::VALIDATION,
                     pfn_user_callback: Some(debug_utils_messenger_callback),
                     ..Default::default()
                 },
@@ -52,6 +54,6 @@ impl Drop for DebugUtils {
         unsafe {
             self.loader
                 .destroy_debug_utils_messenger(self.messenger, None)
-        }; 
+        };
     }
 }

@@ -1,4 +1,3 @@
-use ash::version::DeviceV1_0;
 use ash::vk;
 
 pub struct Pipeline {
@@ -124,7 +123,7 @@ impl Pipeline {
                         logic_op: vk::LogicOp::COPY,
                         attachment_count: 1,
                         p_attachments: &vk::PipelineColorBlendAttachmentState {
-                            color_write_mask: vk::ColorComponentFlags::all(),
+                            color_write_mask: vk::ColorComponentFlags::RGBA,
                             blend_enable: vk::FALSE,
                             ..Default::default()
                         },

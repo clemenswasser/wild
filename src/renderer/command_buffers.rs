@@ -1,7 +1,6 @@
 use super::{
     CommandPool, Device, Framebuffers, IndexBuffer, Pipeline, RenderPass, Surface, VertexBuffer,
 };
-use ash::version::DeviceV1_0;
 use ash::vk;
 
 pub struct CommandBuffers {

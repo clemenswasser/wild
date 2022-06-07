@@ -1,4 +1,3 @@
-use ash::version::{DeviceV1_0, InstanceV1_0};
 use ash::vk;
 
 pub struct Device {
@@ -29,9 +28,9 @@ impl Device {
                 }
                 .to_str()
                 .unwrap(),
-                vk::version_major(physical_device_properties.api_version),
-                vk::version_minor(physical_device_properties.api_version),
-                vk::version_patch(physical_device_properties.api_version)
+                vk::api_version_major(physical_device_properties.api_version),
+                vk::api_version_minor(physical_device_properties.api_version),
+                vk::api_version_patch(physical_device_properties.api_version)
             );
         }
 

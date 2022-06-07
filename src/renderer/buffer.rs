@@ -1,5 +1,4 @@
 use super::{CommandPool, Device, Instance};
-use ash::version::{DeviceV1_0, InstanceV1_0};
 use ash::vk;
 
 pub struct Buffer {

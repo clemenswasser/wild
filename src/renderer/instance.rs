@@ -1,4 +1,3 @@
-use ash::version::{EntryV1_0, InstanceV1_0};
 use ash::vk;
 
 pub struct Instance {
@@ -15,9 +14,7 @@ impl Instance {
     fn create_instance(entry: &super::Entry, window: &winit::window::Window) -> ash::Instance {
         let extensions = ash_window::enumerate_required_extensions(window)
             .unwrap()
-            .iter()
-            .map(|extension| extension.as_ptr())
-            .collect::<Vec<_>>();
+            .to_vec();
         #[cfg(debug_assertions)]
         let mut extensions = extensions;
         #[cfg(debug_assertions)]
